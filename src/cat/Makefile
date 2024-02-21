@@ -1,2 +1,2 @@
-all: main.c structs.c structs.h
-	gcc main.c structs.c structs.h -Wall -Wextra -Werror -o s21_cat
+all: main.c
+	gcc main.c -Wall -Wextra -Werror -o s21_cat

@@ -1,181 +1,105 @@
 #include <stdio.h>
-#include "structs.h"
+#include <string.h>
 
-enum flag_type
-{ B_F, E_F, N_F, S_F, T_F, UNDEF };
+typedef unsigned char uc;
+typedef unsigned int ui;
 
-enum flag_type get_flag_type(char* str);
-void work(FILE* in, enum flag_type type);
+int get_flag_type(char *str, uc *state);
 
-void b_work(FILE* in);
-void e_work(FILE* in);
-void n_work(FILE* in);
-void s_work(FILE* in);
-void t_work(FILE* in);
+void work(FILE *in, uc state);
 
-int not_endl(int c);
+ui need_nonblank(uc state);
+ui need_number(uc state);
+ui need_endl(uc state);
+ui need_squeeze(uc state);
+ui need_tabs(uc state);
 
-int main (int argc, char* argv[])
-{
-    if (argc != 3)
-    {
-        printf("n/a");
-        return 0;
+int main(int argc, char *argv[]) {
+  size_t filecount = 0;
+  uc state = 0;
+
+  for (int i = 1; i < argc; ++i) {
+    if (get_flag_type(argv[i], &state) == 0) {
+      ++filecount;
     }
+  }
 
-    enum flag_type type = get_flag_type(argv[1]);
-
-    if (type == UNDEF)
-    {
-        printf("n/a");
-        return 0;
-    }
-
-    FILE* in = fopen(argv[2], "r");
-
-    if (in == NULL)
-    {
-        printf("n/a");
-        return 0;
-    }
-
-    work(in, type);
-
-    fclose(in);
-    return 0;
-}
-
-enum flag_type get_flag_type(char* str)
-{
-    if (str[0] != '-' || str[2] != '\0')
-        return UNDEF;
-
-    if (str[1] == 'b')
-        return B_F;
-    else if (str[1] == 'e')
-        return E_F;
-    else if (str[1] == 'n')
-        return N_F;
-    else if (str[1] == 's')
-        return S_F;
-    else if (str[1] == 't')
-        return T_F;
-    else
-        return UNDEF;
-}
-
-void work(FILE* in, enum flag_type type)
-{
-    switch (type)
-    {
-        case B_F:
-            b_work(in);
-            break;
-        case E_F:
-            e_work(in);
-            break;
-        case N_F:
-            n_work(in);
-            break;
-        case S_F:
-            s_work(in);
-            break;
-        default:
-            t_work(in);
-            break;
-    }
-}
-
-void b_work(FILE* in)
-{
-    struct String str;
-    size_t size = 1;
-
-    while (!feof(in))
-    {
-        str = init_string_from_stream(in, not_endl);
-
-        if (!is_valid_string(&str))
-            return;
-
-        if (str.size > 0)
-        {
-            printf("%5zu %s\n", size, str.data);
-            ++size;
-        } else
-        {
-            printf("\n");
+  if (filecount == 0) {
+    work(stdin, state);
+  } else {
+    for (int i = 1; i < argc; ++i) {
+      if (get_flag_type(argv[i], &state) == 0) {
+        FILE *in = fopen(argv[i], "r");
+        if (in == NULL) {
+          printf("n/a\n");
+          continue;
         }
 
-        destroy_string(&str);
+        work(in, state);
+
+        fclose(in);
+      }
     }
+  }
+  return 0;
 }
 
-void e_work(FILE* in)
-{
-    struct String str;
+int get_flag_type(char *str, uc *state) {
+  int ret = 1;
 
-    while (!feof(in))
-    {
-        str = init_string_from_stream(in, not_endl);
+  if (strcmp(str, "-b") == 0 || strcmp(str, "--number-nonblank") == 0) {
+    *state |= 1u << 3;
+  } else if (strcmp(str, "-e") == 0 || strcmp(str, "-E") == 0) {
+    *state |= 1u;
+  } else if (strcmp(str, "-n") == 0 || strcmp(str, "--number") == 0) {
+    *state |= 1u << 3;
+    *state |= 1u << 4;
+  } else if (strcmp(str, "-s") == 0 || strcmp(str, "--squeeze-blank") == 0) {
+    *state |= 1u << 1;
+  } else if (strcmp(str, "-t") == 0 || strcmp(str, "-T") == 0) {
+    *state |= 1u << 2;
+  } else
+    ret = 0;
 
-        if (!is_valid_string(&str))
-            return;
-
-
-        destroy_string(&str);
-    }
+  return ret;
 }
 
-void n_work(FILE* in)
-{
-    struct String str;
+ui need_nonblank(uc state) { return state & (1u << 3); }
 
-    while (!feof(in))
-    {
-        str = init_string_from_stream(in, not_endl);
+ui need_number(uc state) { return state & (1u << 4); }
 
-        if (!is_valid_string(&str))
-            return;
+ui need_endl(uc state) { return state & (1u); }
 
+ui need_squeeze(uc state) { return state & (1u << 1); }
 
-        destroy_string(&str);
+ui need_tabs(uc state) { return state & (1u << 2); }
+
+void work(FILE *in, uc state) {
+  char c = getc(in);
+  static size_t string_num = 1;
+  int has_char = 0;
+
+  while (!feof(in)) {
+    if (c == '\r') goto next;
+    if (!has_char) {
+      if ((c != '\n' && need_nonblank(state)) ||
+          (need_number(state) && !need_squeeze(state))) {
+        printf("%6zu  ", string_num++);
+      }
+      if (c == '\n' && need_squeeze(state)) goto next;
     }
-}
-
-void s_work(FILE* in)
-{
-    struct String str;
-
-    while (!feof(in))
-    {
-        str = init_string_from_stream(in, not_endl);
-
-        if (!is_valid_string(&str))
-            return;
-
-
-        destroy_string(&str);
+    has_char = 1;
+    if (c == '\t' && need_tabs(state))
+      printf("^I\t");
+    else if (c == '\n') {
+      if (need_endl(state)) putchar('$');
+      putchar('\n');
+      has_char = 0;
+    } else {
+      putchar(c);
     }
-}
 
-void t_work(FILE* in)
-{
-    struct String str;
-
-    while (!feof(in))
-    {
-        str = init_string_from_stream(in, not_endl);
-
-        if (!is_valid_string(&str))
-            return;
-
-
-        destroy_string(&str);
-    }
-}
-
-int not_endl(int c)
-{
-    return c != '\n';
+  next:
+    c = getc(in);
+  }
 }
