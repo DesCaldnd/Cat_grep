@@ -158,7 +158,7 @@ int is_valid_vector_##type(struct vector_##type* vector)\
 \
 void for_all_vector_##type(struct vector_##type* vector, void (*func)(st_type*, void*), void* opt_data)\
 {\
-    for (int i = 0; i < vector->size; ++i)\
+    for (size_t i = 0; i < vector->size; ++i)\
     {\
         func(&vector->data[i], opt_data);\
     }\
@@ -227,7 +227,7 @@ void insert_vector_##type(struct vector_##type* vector, st_type data, size_t ind
         if (ind > vector->size)\
             ind = vector->size;\
         st_type tmp;\
-        for (int i = ind; i < vector->size + 1; ++i)\
+        for (size_t i = ind; i < vector->size + 1; ++i)\
         {\
             tmp = vector->data[i];\
             vector->data[i] = data;\
@@ -242,7 +242,7 @@ void remove_vector_##type(struct vector_##type* vector, size_t ind)\
     if (ind > vector->size)\
         ind = vector->size;\
 \
-    for (int i = ind; i < vector->size - 1; ++i)\
+    for (size_t i = ind; i < vector->size - 1; ++i)\
     {\
         vector->data[i] = vector->data[i + 1];\
     }\
@@ -252,7 +252,7 @@ void remove_vector_##type(struct vector_##type* vector, size_t ind)\
 st_type* find_vector_##type(struct vector_##type* vector, st_type data, int (*comp)(st_type, st_type))\
 {\
     st_type* res = NULL;\
-    for (int i = 0; i < vector->size; ++i)\
+    for (size_t i = 0; i < vector->size; ++i)\
     {\
         if (comp(vector->data[i], data))\
         {\
