@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 typedef unsigned char uc;
 typedef unsigned int ui;
 
 int get_flag_type(char *str, uc *state);
+int isDir(const char *fileName);
 
 void work(FILE *in, uc state);
 
@@ -29,9 +33,13 @@ int main(int argc, char *argv[]) {
   } else {
     for (int i = 1; i < argc; ++i) {
       if (get_flag_type(argv[i], &state) == 0) {
+        if (isDir(argv[i])) {
+          printf("Is a directory\n");
+          continue;
+        }
         FILE *in = fopen(argv[i], "r");
         if (in == NULL) {
-          printf("n/a\n");
+          printf("No such file or directory\n");
           continue;
         }
 
@@ -42,6 +50,14 @@ int main(int argc, char *argv[]) {
     }
   }
   return 0;
+}
+
+int isDir(const char *fileName) {
+  struct stat path;
+
+  stat(fileName, &path);
+
+  return S_ISDIR(path.st_mode);
 }
 
 int get_flag_type(char *str, uc *state) {

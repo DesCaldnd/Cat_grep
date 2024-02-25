@@ -6,3 +6,8 @@ s21_grep: main.c structs.o
 
 structs.o: structs.h structs.c
 	gcc -c structs.h structs.c -Wall -Werror -Wextra
+
+clean:
+	rm *.o
+	rm *.gch
+	rm s21_grep

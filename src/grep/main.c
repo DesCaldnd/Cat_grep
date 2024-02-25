@@ -450,7 +450,7 @@ void work_os(FILE* in, struct flag_state state, regex_t reg) {
           first = 0;
         else if (is_n(state))
           printf("       ");
-        printf("%.*s\n", match.rm_eo - match.rm_so, beg + match.rm_so);
+        printf("%.*s\n", (int)(match.rm_eo - match.rm_so), beg + match.rm_so);
         beg += match.rm_eo;
 
         value = regexec(&reg, beg, 1, &match, 0);
@@ -491,7 +491,7 @@ void work_ov(FILE* in, struct flag_state state, regex_t reg) {
             if (is_n(state)) printf("%5zu  ", line);
           } else if (is_n(state))
             printf("       ");
-          printf("%.*s\n", match.rm_so, beg);
+          printf("%.*s\n", (int)match.rm_so, beg);
         }
 
         beg += match.rm_eo;
