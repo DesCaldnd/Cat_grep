@@ -51,6 +51,11 @@ void work_file(FILE* in, struct flag_state state, regex_t reg);
 void work_o(FILE* in, struct flag_state state, regex_t reg);
 
 int main(int argc, char* argv[]) {
+  if (argc < 3) {
+    printf("Not enough flags\n");
+    return 0;
+  }
+
   struct flag_state state = {STANDART, 0};
   size_t pattern_count = 0;
 
@@ -70,6 +75,12 @@ int main(int argc, char* argv[]) {
   }
 
   struct vector_str regs;
+
+  if ((state.source == STANDART && argc - i < 2) ||
+      (state.source == FLAGS && argc - i < 1)) {
+    printf("Not enough flags\n");
+    return 0;
+  }
 
   switch (state.source) {
     case STANDART:
